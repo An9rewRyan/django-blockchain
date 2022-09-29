@@ -12,7 +12,7 @@ import ast
 
 class Transaction:
 
-    def __init___(self, sender: str, reciever: str, amount: int, time: str):
+    def __init__(self, sender: str, reciever: str, amount: int, time: str):
         self.sender = sender 
         self.reciever = reciever
         self.amount = amount
@@ -103,7 +103,8 @@ class Blockchain:
             block_index += 1
         return True
 
-    def add_transaction(self, sender, receiver, amount, time): #New
+    def add_transaction(self, sender, receiver, amount): #New
+        print("Here!")
         transaction = Transaction(sender, receiver, amount, datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f"))
         max_space = 0
         max_space_block = self.chain[0] #filling the first for test purposes
@@ -206,11 +207,13 @@ def is_valid(request):
 @csrf_exempt
 def add_transaction(request): #New
     if request.method == 'POST':
-        received_json = json.loads(request.body)
-        transaction_keys = ['sender', 'receiver', 'amount','time']
+        received_json = json.loads(request.body.decode())
+        print(received_json)
+        transaction_keys = ['sender', 'reciever', 'amount']
         if not all(key in received_json for key in transaction_keys):
-            return 'Some elements of the transaction are missing', HttpResponse(status=400)
-        index = blockchain.add_transaction(received_json['sender'], received_json['receiver'], received_json['amount'],received_json['time'])
+            print('Some elements of the transaction are missing')
+            return 
+        index = blockchain.add_transaction(received_json['sender'], received_json['reciever'], received_json['amount'])
         response = {'message': f'This transaction will be added to Block {index}'}
     return JsonResponse(response)
 
