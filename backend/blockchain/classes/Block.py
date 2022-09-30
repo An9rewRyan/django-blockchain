@@ -46,6 +46,6 @@ class Block:
 
         return hashed_header
 
-    def hash_block(self, nonce):
+    def hash_block(self, nonce:int) -> str:
         encoded_block = self.double_sha256(str(self.headers)+str(nonce))
         return encoded_block 

@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "create-react-app": "^5.0.1"
+    "axios": "^0.27.2",
+    "bootstrap": "^5.2.1",
+    "create-react-app": "^5.0.1",
+    "font-awesome": "^4.7.0",
+    "react-bootstrap": "^2.5.0"
   }
 }

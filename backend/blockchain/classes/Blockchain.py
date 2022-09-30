@@ -4,18 +4,16 @@ from .Transaction import Transaction
 from datetime import datetime
 from requests import get
 from urllib.parse import urlparse
-from threading import Thread
 from time import sleep
 
 class Blockchain:
 
     def __init__(self):
         self.nodes = set()
-        self.chain: List[Block] = []
+        self.chain: list[Block] = []
         self.version = 1
         self.difficulty = 2**238
         self.spawn_period = 30 #in seconds
-        self.nodes = set() 
     
     def spawn_block(self) -> None:
         print("Here!")
@@ -51,7 +49,7 @@ class Blockchain:
                 self.chain.append(updated_block)
         return
 
-    def is_chain_valid(self, chain: List[Block]) -> bool:
+    def is_chain_valid(self, chain: list[Block]) -> bool:
         previous_block = chain[0]
         block_index = 1
         while block_index < len(chain):
@@ -71,14 +69,13 @@ class Blockchain:
             block_index += 1
         return True
 
-    def add_transaction(self, sender, receiver, amount): #New
+    def add_transaction(self, sender: str, receiver: str, amount: int) -> None: 
         transaction = Transaction(sender, receiver, amount, datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f"))
 
         max_space_block = self.chain[0] #filling the first for test purposes
 
         max_space_block.transaction_counter+=1
         max_space_block.transactions.append(transaction.__dict__)
-         #this is necessary for recourrsive set_merkel_root func to work
 
         if max_space_block.transaction_counter % 4 == 0:
             max_space_block.headers["merkel_root"] = max_space_block.transactions
@@ -92,7 +89,7 @@ class Blockchain:
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
 
-    def dict_chain_to_block_chain(self, chain: List[dict]) -> List[Block]:
+    def dict_chain_to_block_chain(self, chain: list[dict]) -> list[Block]:
         block_chain = []
         for block in chain:
             block_chain.append(Block(
@@ -104,7 +101,7 @@ class Blockchain:
         ))
         return block_chain
 
-    def replace_chain(self): #New
+    def replace_chain(self) -> bool: #New
         network = self.nodes
         longest_chain = None
         max_length = len(self.chain)

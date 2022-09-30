@@ -8,11 +8,11 @@ from .classes.Blockchain import Blockchain
 from django.views.decorators.csrf import csrf_exempt
 from threading import Thread
 
-
 blockchain = Blockchain()
 node_address = str(uuid4()).replace('-', '') 
 root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'
-daemon = Thread(target = blockchain.spawn_block, args=(), daemon=True, name='Background block spawner')
+
+daemon = Thread(target = blockchain.spawn_block, args=(), daemon=True, name='Background block spawner') #daemon for spawning blocks on background
 daemon.start()
 
 def mine_block(request):
