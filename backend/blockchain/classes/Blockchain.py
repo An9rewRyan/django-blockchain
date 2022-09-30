@@ -58,19 +58,16 @@ class Blockchain:
         return True
 
     def add_transaction(self, sender, receiver, amount): #New
-        print("Here!")
         transaction = Transaction(sender, receiver, amount, datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f"))
-        max_space = 0
+
         max_space_block = self.chain[0] #filling the first for test purposes
-        for block in self.chain:
-            if block.blocksize > max_space:
-                max_space = self.chain[0].blocksize
-                max_space_block = block
-        
-        self.chain.remove(max_space_block)
 
         max_space_block.transaction_counter+=1
         max_space_block.transactions.append(transaction.__dict__)
+        max_space_block.headers["merkel_root"] = max_space_block.transactions #this is necessary for recourrsive set_merkel_root func to work
+
+        if max_space_block.transaction_counter % 4 == 0:
+            max_space_block.set_merkel_root()
 
         self.chain.append(max_space_block)
 

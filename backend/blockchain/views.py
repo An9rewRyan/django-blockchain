@@ -98,7 +98,6 @@ def replace_chain(request): #New
         else:
             response = {'message': 'All good. The chain is the largest one.',
                         'actual_chain': chain}
-    print("\n\n\n\n\n\n\n")
     return JsonResponse(response)
 
 

@@ -8,7 +8,7 @@ class Block:
             'time': time,
             'nonce' : nonce,
             'previous_hash' : previous_hash,
-            'merkel_root' : '',
+            'merkel_root' : [],
             'difficulty': difficulty,
             'version': version,
         }
@@ -16,17 +16,19 @@ class Block:
         self.transaction_counter = 0
         self.blocksize = 10 #in megabytes
     
-    def get_merkel_root(self, transactions) -> str:
-        if transactions != 1:
+    def set_merkel_root(self) -> str:
+
+        while len(self.headers["merkel_root"]) != 1:
             hashed_trunsactions = []
-            for i in range(0, len(transactions)-1, 2):
-                curr_hex = sha256(transactions[i].encode()).hexdigest()
-                next_hex = sha256(transactions[i+1].encode()).hexdigest()
+            for i in range(0, len(self.headers["merkel_root"])-1, 2):
+                curr_hex = sha256(str(self.headers["merkel_root"][i]).encode()).hexdigest()
+                next_hex = sha256(str(self.headers["merkel_root"][i+1]).encode()).hexdigest()
                 hash_pair = sha256((curr_hex+next_hex).encode()).hexdigest()
                 hashed_trunsactions.append(hash_pair)
-            return self.get_merkel_root(self, hashed_trunsactions)
-        else:
-            return transactions
+                print(hashed_trunsactions,self.headers["merkel_root"])
+            self.headers["merkel_root"] = hashed_trunsactions
+        
+        return self.headers["merkel_root"]
 
     def hash_headers(self) -> str:
         return sha256(str(self.headers).encode()).hexdigest()
