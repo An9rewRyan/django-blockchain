@@ -1,21 +1,24 @@
 from hashlib import sha256
 import json
+from binascii import unhexlify, hexlify
+from typing import List
 
 class Block:
 
-    def __init__(self, previous_hash: str, difficulty: int, version: int, time: str, nonce: int=0):
+    def __init__(self, previous_hash: str, difficulty: str, version: str, time: str, nonce: int=1):
         self.headers = {
-            'time': time,
-            'nonce' : nonce,
+            'version': version,
             'previous_hash' : previous_hash,
             'merkel_root' : [],
+            'time': time,
             'difficulty': difficulty,
-            'version': version,
+            'nonce' : nonce,
+
         }
         self.transactions = []
         self.transaction_counter = 0
         self.blocksize = 10 #in megabytes
-    
+
     def set_merkel_root(self) -> str:
 
         while len(self.headers["merkel_root"]) != 1:
@@ -29,10 +32,20 @@ class Block:
             self.headers["merkel_root"] = hashed_trunsactions
         
         return self.headers["merkel_root"]
+    
+    def double_sha256(self, data: str) -> str:
+        data_bin = data.encode()
+        data_hash = sha256(sha256(data_bin).digest()).digest()
+        data_hash_decoded = hexlify(data_hash[::-1]).decode("utf-8")
 
+        return data_hash_decoded
+        
     def hash_headers(self) -> str:
-        return sha256(str(self.headers).encode()).hexdigest()
+
+        hashed_header = self.double_sha256(str(self.headers))
+
+        return hashed_header
 
     def hash_block(self, nonce):
-        encoded_block = (json.dumps(self.__dict__)+str(nonce)).encode()
-        return sha256(encoded_block).hexdigest()
+        encoded_block = self.double_sha256(str(self.headers)+str(nonce))
+        return encoded_block 

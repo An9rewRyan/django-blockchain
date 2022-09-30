@@ -13,38 +13,42 @@ class Blockchain:
         self.nodes = set()
         self.chain: List[Block] = []
         self.version = 1
-        self.difficulty = 4
-        self.spawn_period = 10 #in seconds
+        self.difficulty = 2**234
+        self.spawn_period = 60 #in seconds
         self.nodes = set() 
-       
-    def get_last_block_hash(self) -> str:
-        last_block : Block = self.chain[-1]
-        last_block_hash = last_block.hash_headers()
-        return last_block_hash
     
+    def spawn_block(self) -> None:
+        print("Here!")
+        while True:
+            block = Block(
+                previous_hash = self.get_last_block_hash(), 
+                difficulty = self.difficulty,
+                version = self.version,
+                time = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
+            )
+            self.chain.append(block)
+            print("New block spawned!")
+            sleep(self.spawn_period)
+
     def get_last_block(self) -> Block:
         return self.chain[-1]
 
-    def give_block_nonce(self, updated_block:Block) -> None:
+    def get_last_block_hash(self) -> str:
+        if len(self.chain) > 1:
+            last_block = self.get_last_block()
+            last_block_hash = last_block.hash_headers()
+            return last_block_hash
+        else:
+            return " "
+
+    def set_block_nonce(self, updated_block: Block) -> None:
         for block in self.chain:
             if block.headers["previous_hash"] == updated_block.headers["previous_hash"]:
                 self.chain.remove(block)
                 self.chain.append(updated_block)
         return
 
-    def spawn_block(self, previous_hash: str= "" ) -> None:
-        while True:
-            block = Block(
-                previous_hash = previous_hash, 
-                difficulty = self.difficulty,
-                version = self.version,
-                time = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
-            )
-            self.chain.append(block)
-            print(block)
-            sleep(self.spawn_period)
-
-    def is_chain_valid(self, chain: List[Block]):
+    def is_chain_valid(self, chain: List[Block]) -> bool:
         previous_block = chain[0]
         block_index = 1
         while block_index < len(chain):
@@ -81,6 +85,18 @@ class Blockchain:
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
 
+    def dict_chain_to_block_chain(self, chain: List[dict]) -> List[Block]:
+        block_chain = []
+        for block in chain:
+            block_chain.append(Block(
+                previous_hash=block["headers"]["previous_hash"],
+                difficulty=self.difficulty,
+                version=self.version,
+                nonce=block["headers"]["nonce"],
+                time = block["headers"]["time"]
+        ))
+        return block_chain
+
     def replace_chain(self): #New
         network = self.nodes
         longest_chain = None
@@ -89,18 +105,10 @@ class Blockchain:
             response = get(f'http://{node}/get_chain')
             if response.status_code == 200:
                 length = response.json()["length"]
-                chain = response.json()["chain"]
+                dict_chain = response.json()["chain"]
 
-                new_chain = []
+                new_chain = self.dict_chain_to_block_chain(dict_chain)
 
-                for block in chain:
-                    new_chain.append(Block(
-                        previous_hash=block["headers"]["previous_hash"],
-                        difficulty=self.difficulty,
-                        version=self.version,
-                        nonce=block["headers"]["nonce"],
-                        time = block["headers"]["time"]
-                    ))
                 print(length, new_chain, self.is_chain_valid(new_chain))
                 if length > max_length and self.is_chain_valid(new_chain):
                     max_length = length

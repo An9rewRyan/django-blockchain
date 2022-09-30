@@ -19,13 +19,19 @@ def mine_block(request):
     if request.method == 'GET':
         last_block = blockchain.get_last_block()
         nonce = 1
-        while last_block.hash_block(nonce)[:blockchain.difficulty] != "0"*blockchain.difficulty:         
+        coinbase = 0
+        print(int(last_block.hash_block(nonce), 16))
+        while int(last_block.hash_block(nonce), 16) >= blockchain.difficulty:   
+            print(int(last_block.hash_block(nonce), 16), blockchain.difficulty, int(last_block.hash_block(nonce), 16)- blockchain.difficulty, nonce, coinbase )      
             nonce +=1
-            last_block.headers["nonce"] = nonce
-            print(last_block.hash_block(nonce), nonce)
+            if nonce == 2**32:
+                nonce = 1
+                coinbase +=1
+                last_block.headers["merkel_root"]+=str(coinbase)
 
+        last_block.headers["nonce"] = nonce
 
-        blockchain.give_block_nonce(last_block)
+        blockchain.set_block_nonce(last_block)
 
         response = {'message': 'Congratulations, you just mined a block!',
                     'timestamp': last_block.headers['time'],
