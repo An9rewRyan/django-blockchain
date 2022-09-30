@@ -1,2 +1,2 @@
-# opezdeilcoin-project
- Cryptocurrency engine based ob django (work in progress)
+# django-blockchain
+Cryptocurrency engine based on django and bitcoin arch. (work in progress)
