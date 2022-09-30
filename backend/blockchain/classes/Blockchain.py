@@ -14,7 +14,7 @@ class Blockchain:
         self.chain: List[Block] = []
         self.version = 1
         self.difficulty = 2**234
-        self.spawn_period = 60 #in seconds
+        self.spawn_period = 120 #in seconds
         self.nodes = set() 
     
     def spawn_block(self) -> None:
@@ -72,9 +72,10 @@ class Blockchain:
 
         max_space_block.transaction_counter+=1
         max_space_block.transactions.append(transaction.__dict__)
-        max_space_block.headers["merkel_root"] = max_space_block.transactions #this is necessary for recourrsive set_merkel_root func to work
+         #this is necessary for recourrsive set_merkel_root func to work
 
         if max_space_block.transaction_counter % 4 == 0:
+            max_space_block.headers["merkel_root"] = max_space_block.transactions
             max_space_block.set_merkel_root()
 
         self.chain.append(max_space_block)
