@@ -1,2 +1,5 @@
 Pipfile.lock
 blockchain/migrations
+package-lock.json
+db.sqlite3
+node_modules/
