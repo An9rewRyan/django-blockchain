@@ -4,6 +4,8 @@ from .Transaction import Transaction
 from datetime import datetime
 from requests import get
 from urllib.parse import urlparse
+from threading import Thread
+from time import sleep
 
 class Blockchain:
 
@@ -12,9 +14,9 @@ class Blockchain:
         self.chain: List[Block] = []
         self.version = 1
         self.difficulty = 4
+        self.spawn_period = 10 #in seconds
         self.nodes = set() 
-        self.create_block()
-    
+       
     def get_last_block_hash(self) -> str:
         last_block : Block = self.chain[-1]
         last_block_hash = last_block.hash_headers()
@@ -30,16 +32,18 @@ class Blockchain:
                 self.chain.append(updated_block)
         return
 
-    def create_block(self, previous_hash: str= "" ):
-        block = Block(
-            previous_hash = previous_hash, 
-            difficulty = self.difficulty,
-            version = self.version,
-            time = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
-        )
-        self.chain.append(block)
-        return block
-    
+    def spawn_block(self, previous_hash: str= "" ) -> None:
+        while True:
+            block = Block(
+                previous_hash = previous_hash, 
+                difficulty = self.difficulty,
+                version = self.version,
+                time = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
+            )
+            self.chain.append(block)
+            print(block)
+            sleep(self.spawn_period)
+
     def is_chain_valid(self, chain: List[Block]):
         previous_block = chain[0]
         block_index = 1

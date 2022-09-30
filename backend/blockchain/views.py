@@ -6,17 +6,14 @@ from django.http import JsonResponse, HttpResponse
 import ast
 from .classes.Blockchain import Blockchain
 from django.views.decorators.csrf import csrf_exempt
-
+from threading import Thread
 
 
 blockchain = Blockchain()
 node_address = str(uuid4()).replace('-', '') 
 root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'
-
-
-def create_empty_block(request):
-    block = blockchain.create_block(blockchain.get_last_block_hash())
-    return JsonResponse(block.__dict__)
+daemon = Thread(target = blockchain.spawn_block, args=(), daemon=True, name='Background block spawner')
+daemon.start()
 
 def mine_block(request):
     if request.method == 'GET':
