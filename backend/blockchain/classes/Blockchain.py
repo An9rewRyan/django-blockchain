@@ -13,8 +13,8 @@ class Blockchain:
         self.nodes = set()
         self.chain: List[Block] = []
         self.version = 1
-        self.difficulty = 2**234
-        self.spawn_period = 120 #in seconds
+        self.difficulty = 2**238
+        self.spawn_period = 30 #in seconds
         self.nodes = set() 
     
     def spawn_block(self) -> None:
@@ -34,8 +34,11 @@ class Blockchain:
         return self.chain[-1]
 
     def get_last_block_hash(self) -> str:
-        if len(self.chain) > 1:
-            last_block = self.get_last_block()
+        if len(self.chain) >= 1:
+            if len(self.chain) == 1:
+                last_block = self.chain[0]
+            else:
+                last_block = self.get_last_block()
             last_block_hash = last_block.hash_headers()
             return last_block_hash
         else:
@@ -58,8 +61,11 @@ class Blockchain:
                 print("Hash headers wrong")
                 return False
             
-            if hash_operation[:self.difficulty] != '0'*self.difficulty:
-                print(hash_operation, " not walid proof of work")
+            nonce = curr_block.headers["nonce"] 
+            curr_block.headers["nonce"] = 1 
+
+            if int(curr_block.hash_block(nonce), 16) >= self.difficulty:
+                print(hash_operation, " is not walid proof of work")
                 return False
             previous_block = curr_block
             block_index += 1
