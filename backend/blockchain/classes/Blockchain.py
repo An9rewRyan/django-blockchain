@@ -6,6 +6,7 @@ from requests import get
 from urllib.parse import urlparse
 from time import sleep
 
+
 class Blockchain:
 
     def __init__(self):
@@ -13,16 +14,16 @@ class Blockchain:
         self.chain: list[Block] = []
         self.version = 1
         self.difficulty = 2**238
-        self.spawn_period = 30 #in seconds
-    
+        self.spawn_period = 30  # in seconds
+
     def spawn_block(self) -> None:
         print("Here!")
         while True:
             block = Block(
-                previous_hash = self.get_last_block_hash(), 
-                difficulty = self.difficulty,
-                version = self.version,
-                time = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
+                previous_hash=self.get_last_block_hash(),
+                difficulty=self.difficulty,
+                version=self.version,
+                time=datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
             )
             self.chain.append(block)
             print("New block spawned!")
@@ -55,12 +56,13 @@ class Blockchain:
         while block_index < len(chain):
             curr_block = chain[block_index]
             hash_operation = curr_block.hash_block(curr_block.headers["nonce"])
-            if curr_block.headers['previous_hash'] != previous_block.hash_headers():
+            if curr_block.headers['previous_hash'] != previous_block.hash_headers(
+            ):
                 print("Hash headers wrong")
                 return False
-            
-            nonce = curr_block.headers["nonce"] 
-            curr_block.headers["nonce"] = 1 
+
+            nonce = curr_block.headers["nonce"]
+            curr_block.headers["nonce"] = 1
 
             if int(curr_block.hash_block(nonce), 16) >= self.difficulty:
                 print(hash_operation, " is not walid proof of work")
@@ -69,12 +71,16 @@ class Blockchain:
             block_index += 1
         return True
 
-    def add_transaction(self, sender: str, receiver: str, amount: int) -> None: 
-        transaction = Transaction(sender, receiver, amount, datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f"))
+    def add_transaction(self, sender: str, receiver: str, amount: int) -> None:
+        transaction = Transaction(
+            sender,
+            receiver,
+            amount,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f"))
 
-        max_space_block = self.chain[0] #filling the first for test purposes
+        max_space_block = self.chain[0]  # filling the first for test purposes
 
-        max_space_block.transaction_counter+=1
+        max_space_block.transaction_counter += 1
         max_space_block.transactions.append(transaction.__dict__)
 
         if max_space_block.transaction_counter % 4 == 0:
@@ -85,7 +91,7 @@ class Blockchain:
 
         return
 
-    def add_node(self, address): #New
+    def add_node(self, address):  # New
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
 
@@ -97,11 +103,11 @@ class Blockchain:
                 difficulty=self.difficulty,
                 version=self.version,
                 nonce=block["headers"]["nonce"],
-                time = block["headers"]["time"]
-        ))
+                time=block["headers"]["time"]
+            ))
         return block_chain
 
-    def replace_chain(self) -> bool: #New
+    def replace_chain(self) -> bool:  # New
         network = self.nodes
         longest_chain = None
         max_length = len(self.chain)

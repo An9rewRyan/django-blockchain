@@ -1,19 +1,24 @@
+from threading import Thread
+from django.views.decorators.csrf import csrf_exempt
+from .classes.Blockchain import Blockchain
+import ast
+from django.http import JsonResponse, HttpResponse
+from uuid import uuid4
+import json
 import sys
 sys.path.append('./classes')
-import json
-from uuid import uuid4
-from django.http import JsonResponse, HttpResponse
-import ast
-from .classes.Blockchain import Blockchain
-from django.views.decorators.csrf import csrf_exempt
-from threading import Thread
 
 blockchain = Blockchain()
-node_address = str(uuid4()).replace('-', '') 
+node_address = str(uuid4()).replace('-', '')
 root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'
 
-daemon = Thread(target = blockchain.spawn_block, args=(), daemon=True, name='Background block spawner') #daemon for spawning blocks on background
+daemon = Thread(
+    target=blockchain.spawn_block,
+    args=(),
+    daemon=True,
+    name='Background block spawner')  # daemon for spawning blocks on background
 daemon.start()
+
 
 def mine_block(request):
     if request.method == 'GET':
@@ -21,13 +26,14 @@ def mine_block(request):
         nonce = 1
         coinbase = 0
         print(int(last_block.hash_block(nonce), 16))
-        while int(last_block.hash_block(nonce), 16) >= blockchain.difficulty:   
-            print(int(last_block.hash_block(nonce), 16), blockchain.difficulty, int(last_block.hash_block(nonce), 16)- blockchain.difficulty, nonce, coinbase )      
-            nonce +=1
+        while int(last_block.hash_block(nonce), 16) >= blockchain.difficulty:
+            print(int(last_block.hash_block(nonce), 16), blockchain.difficulty, int(
+                last_block.hash_block(nonce), 16) - blockchain.difficulty, nonce, coinbase)
+            nonce += 1
             if nonce == 2**32:
                 nonce = 1
-                coinbase +=1
-                last_block.headers["merkel_root"]+=str(coinbase)
+                coinbase += 1
+                last_block.headers["merkel_root"] += str(coinbase)
 
         last_block.headers["nonce"] = nonce
 
@@ -40,6 +46,7 @@ def mine_block(request):
 
     return JsonResponse(response)
 
+
 def get_chain(request):
     chain = []
     for block in blockchain.chain:
@@ -50,6 +57,7 @@ def get_chain(request):
     print(ast.literal_eval(json.dumps(response)))
 
     return JsonResponse(ast.literal_eval(json.dumps(response)))
+
 
 def is_valid(request):
     if request.method == 'GET':
@@ -62,21 +70,27 @@ def is_valid(request):
 
 
 @csrf_exempt
-def add_transaction(request): #New
+def add_transaction(request):  # New
     if request.method == 'POST':
         received_json = json.loads(request.body.decode())
         print(received_json)
         transaction_keys = ['sender', 'reciever', 'amount']
         if not all(key in received_json for key in transaction_keys):
             print('Some elements of the transaction are missing')
-            return 
-        index = blockchain.add_transaction(received_json['sender'], received_json['reciever'], received_json['amount'])
-        response = {'message': f'This transaction will be added to Block {index}'}
+            return
+        index = blockchain.add_transaction(
+            received_json['sender'],
+            received_json['reciever'],
+            received_json['amount'])
+        response = {
+            'message': f'This transaction will be added to Block {index}'}
     return JsonResponse(response)
 
 # Connecting new nodes
+
+
 @csrf_exempt
-def connect_node(request): #New
+def connect_node(request):  # New
     if request.method == 'POST':
         received_json = json.loads(request.body)
         nodes = received_json.get('nodes')
@@ -89,7 +103,9 @@ def connect_node(request): #New
     return JsonResponse(response)
 
 # Replacing the chain by the longest chain if needed
-def replace_chain(request): #New
+
+
+def replace_chain(request):  # New
     chain = []
     for block in blockchain.chain:
         chain.append(block.__dict__)
@@ -102,12 +118,3 @@ def replace_chain(request): #New
             response = {'message': 'All good. The chain is the largest one.',
                         'actual_chain': chain}
     return JsonResponse(response)
-
-
-    
-    
-    
-    
-    
-    
-    
