@@ -12,7 +12,7 @@ sys.path.append('./classes')
 blockchain = Blockchain()
 blockchain.nodes = ("127.0.0.1:8001",
                     "127.0.0.1:8002",
-                    "127.0.0.1:8003")
+                    )
 node_address = str(uuid4()).replace('-', '')
 root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'
 
@@ -31,8 +31,6 @@ def mine_block(request):
         coinbase = 0
         print(int(last_block.hash_block(nonce), 16))
         while int(last_block.hash_block(nonce), 16) >= blockchain.difficulty:
-            print(int(last_block.hash_block(nonce), 16), blockchain.difficulty, int(
-                last_block.hash_block(nonce), 16) - blockchain.difficulty, nonce, coinbase)
             nonce += 1
             if nonce == 2**32:
                 nonce = 1
@@ -43,7 +41,7 @@ def mine_block(request):
 
         chain = blockchain.set_block_nonce(last_block)
         blockchain.chain = chain
-        print("\n\n\n\n", blockchain.chain)
+
         blockchain.send_chain_to_nodes()
 
         response = {'message': 'Congratulations, you just mined a block!',
@@ -61,7 +59,7 @@ def get_chain(request):
 
     response = {"chain": chain,
                 "length": len(blockchain.chain),
-                "nodes": blockchain.nodes}
+                "nodes": list(blockchain.nodes)}
 
     print(ast.literal_eval(json.dumps(response)))
 
@@ -115,6 +113,9 @@ def replace_chain(request):
     if request.method == "POST":
         received_json = json.loads(request.body)
         new_dict_chain = received_json.get('chain')
+        nodes = set(received_json.get('nodes'))
+
+        blockchain.nodes = set.union(nodes, blockchain.nodes)
 
         new_chain = blockchain.dict_chain_to_block_chain(new_dict_chain)
         response = {
@@ -136,7 +137,8 @@ def replace_chain(request):
                     )
                     blockchain.chain.append(new_block)
                 response = {
-                    'message': 'Blockchain is valid. Current chain updated'}
+                    'message': 'Blockchain is valid. Current chain updated',
+                }
             else:
                 response = {
                     'message': 'Blockchain is not valid. Current chain stay the same'}

@@ -152,11 +152,12 @@ class Blockchain:
         for block in self.chain:
             new_chain.append(block.__dict__)
 
-        print(new_chain)
+
 
         for node in network:
             response = post(f'http://{node}/replace_chain', json={
-                "chain": new_chain
+                "chain": new_chain,
+                "nodes": list(self.nodes)
             })
             if response.status_code == 200:
                 message = response.json()["message"]
