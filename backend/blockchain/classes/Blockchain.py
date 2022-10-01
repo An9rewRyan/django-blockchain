@@ -1,8 +1,9 @@
+from distutils.spawn import spawn
 from typing import List
 from .Block import Block
 from .Transaction import Transaction
 from datetime import datetime
-from requests import get
+from requests import get, post
 from urllib.parse import urlparse
 from time import sleep
 
@@ -11,14 +12,11 @@ class Blockchain:
 
     def __init__(self):
         self.nodes = set(    #root nodes to check
-            "127:0.0.1:8001",
-            "127.0.0.1:8002",
-            "127.0.0.1:8003"
         )
         self.chain: list[Block] = []
         self.version = 1
-        self.difficulty = 2**238
-        self.spawn_period = 30  # in seconds
+        self.difficulty = 2**236
+        self.spawn_period = 180  # in seconds
 
     def spawn_block(self) -> None:
         print("Here!")
@@ -27,9 +25,20 @@ class Blockchain:
                 previous_hash=self.get_last_block_hash(),
                 difficulty=self.difficulty,
                 version=self.version,
+                nonce = 1,
                 time=datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
             )
             self.chain.append(block)
+
+            block = Block(
+                previous_hash=self.get_last_block_hash(),
+                difficulty=self.difficulty,
+                version=self.version,
+                nonce = 1,
+                time=datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
+            )
+            self.chain.append(block)
+
             print("New block spawned!")
             sleep(self.spawn_period)
 
@@ -47,12 +56,12 @@ class Blockchain:
         else:
             return " "
 
-    def set_block_nonce(self, updated_block: Block) -> None:
+    def set_block_nonce(self, updated_block: Block) -> list[Block]:
         for block in self.chain:
             if block.headers["previous_hash"] == updated_block.headers["previous_hash"]:
                 self.chain.remove(block)
                 self.chain.append(updated_block)
-        return
+        return self.chain
 
     def is_chain_valid(self, chain: list[Block]) -> bool:
         previous_block = chain[0]
@@ -101,6 +110,7 @@ class Blockchain:
 
     def dict_chain_to_block_chain(self, chain: list[dict]) -> list[Block]:
         block_chain = []
+        # print(chain)
         for block in chain:
             block_chain.append(Block(
                 previous_hash=block["headers"]["previous_hash"],
@@ -134,3 +144,22 @@ class Blockchain:
             self.chain = longest_chain
             return True
         return False
+    
+    def send_chain_to_nodes(self) -> list:
+        network = self.nodes
+        new_chain = []
+
+        for block in self.chain:
+            new_chain.append(block.__dict__)
+        
+        print(new_chain)
+
+        for node in network:
+            response = post(f'http://{node}/replace_chain', json={
+                "chain" : new_chain
+            })
+            if response.status_code == 200:
+                message = response.json()["message"]
+                print(message)
+        
+        return []

@@ -1,6 +1,7 @@
 from threading import Thread
 from django.views.decorators.csrf import csrf_exempt
 from .classes.Blockchain import Blockchain
+from .classes.Block import Block
 import ast
 from django.http import JsonResponse, HttpResponse
 from uuid import uuid4
@@ -9,9 +10,12 @@ import sys
 sys.path.append('./classes')
 
 blockchain = Blockchain()
+blockchain.nodes = ("127.0.0.1:8001",
+                    "127.0.0.1:8002",
+                    "127.0.0.1:8003")
 node_address = str(uuid4()).replace('-', '')
 root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'
-
+# £adasda==asdasdadsadsaasdasd
 daemon = Thread(
     target=blockchain.spawn_block,
     args=(),
@@ -37,7 +41,10 @@ def mine_block(request):
 
         last_block.headers["nonce"] = nonce
 
-        blockchain.set_block_nonce(last_block)
+        chain = blockchain.set_block_nonce(last_block)
+        blockchain.chain = chain
+        print("\n\n\n\n", blockchain.chain)
+        blockchain.send_chain_to_nodes()
 
         response = {'message': 'Congratulations, you just mined a block!',
                     'timestamp': last_block.headers['time'],
@@ -55,7 +62,7 @@ def get_chain(request):
     response = {"chain": chain,
                 "length": len(blockchain.chain),
                 "nodes": blockchain.nodes}
-                
+
     print(ast.literal_eval(json.dumps(response)))
 
     return JsonResponse(ast.literal_eval(json.dumps(response)))
@@ -104,19 +111,32 @@ def connect_node(request):  # New
                     'total_nodes': list(blockchain.nodes)}
     return JsonResponse(response)
 
-# Replacing the chain by the longest chain if needed
+# Replacing the chain by the longest chain if needed asdasd s s
 
+@csrf_exempt
+def replace_chain(request):
+    if request.method == "POST":
+        received_json = json.loads(request.body)
+        new_dict_chain = received_json.get('chain')
+        response = {'message': 'Blabalbla'}
 
-def replace_chain(request):  # New
-    chain = []
-    for block in blockchain.chain:
-        chain.append(block.__dict__)
-    if request.method == 'GET':
-        is_chain_replaced = blockchain.replace_chain()
-        if is_chain_replaced:
-            response = {'message': 'The nodes had different chains so the chain was replaced by the longest one.',
-                        'new_chain': chain}
-        else:
-            response = {'message': 'All good. The chain is the largest one.',
-                        'actual_chain': chain}
-    return JsonResponse(response)
+        new_chain = blockchain.dict_chain_to_block_chain(new_dict_chain)
+
+        if not(blockchain.is_chain_valid(blockchain.chain)) and len(new_chain) >= len(blockchain.chain):
+            is_valid = blockchain.is_chain_valid(new_chain)
+            if is_valid:
+                blockchain.chain = []
+                for block in new_dict_chain:
+                    new_block = Block(
+                        previous_hash=block["headers"]["previous_hash"],
+                        difficulty=blockchain.difficulty,
+                        version=blockchain.version,
+                        nonce=block["headers"]["nonce"],
+                        time=block["headers"]["time"]
+                    )
+                    blockchain.chain.append(new_block)
+                response = {'message': 'Blockchain is valid. Current chain updated'}
+            else:
+                response = {'message': 'Blockchain is not valid. Current chain stay the same'}
+
+        return JsonResponse(response)

@@ -7,7 +7,7 @@ from typing import List
 class Block:
 
     def __init__(self, previous_hash: str, difficulty: str,
-                 version: str, time: str, nonce: int = 1):
+                 version: str, time: str, nonce: int):
         self.headers = {
             'version': version,
             'previous_hash': previous_hash,
@@ -15,7 +15,6 @@ class Block:
             'time': time,
             'difficulty': difficulty,
             'nonce': nonce,
-
         }
         self.transactions = []
         self.transaction_counter = 0
