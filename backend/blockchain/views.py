@@ -15,7 +15,7 @@ blockchain.nodes = ("127.0.0.1:8001",
                     "127.0.0.1:8003")
 node_address = str(uuid4()).replace('-', '')
 root_node = 'e36f0158f0aed45b3bc755dc52ed4560d'
-# £adasda==asdasdadsadsaasdasd
+
 daemon = Thread(
     target=blockchain.spawn_block,
     args=(),
@@ -79,7 +79,7 @@ def is_valid(request):
 
 
 @csrf_exempt
-def add_transaction(request):  # New
+def add_transaction(request):
     if request.method == 'POST':
         received_json = json.loads(request.body.decode())
         print(received_json)
@@ -95,11 +95,9 @@ def add_transaction(request):  # New
             'message': f'This transaction will be added to Block {index}'}
     return JsonResponse(response)
 
-# Connecting new nodes
-
 
 @csrf_exempt
-def connect_node(request):  # New
+def connect_node(request):
     if request.method == 'POST':
         received_json = json.loads(request.body)
         nodes = received_json.get('nodes')
@@ -111,18 +109,20 @@ def connect_node(request):  # New
                     'total_nodes': list(blockchain.nodes)}
     return JsonResponse(response)
 
-# Replacing the chain by the longest chain if needed asdasd s s
 
 @csrf_exempt
 def replace_chain(request):
     if request.method == "POST":
         received_json = json.loads(request.body)
         new_dict_chain = received_json.get('chain')
-        response = {'message': 'Blabalbla'}
 
         new_chain = blockchain.dict_chain_to_block_chain(new_dict_chain)
+        response = {
+            "message": "Current blockchain is longer"
+        }
 
-        if not(blockchain.is_chain_valid(blockchain.chain)) and len(new_chain) >= len(blockchain.chain):
+        if not (blockchain.is_chain_valid(blockchain.chain)) and len(
+                new_chain) >= len(blockchain.chain):
             is_valid = blockchain.is_chain_valid(new_chain)
             if is_valid:
                 blockchain.chain = []
@@ -135,8 +135,10 @@ def replace_chain(request):
                         time=block["headers"]["time"]
                     )
                     blockchain.chain.append(new_block)
-                response = {'message': 'Blockchain is valid. Current chain updated'}
+                response = {
+                    'message': 'Blockchain is valid. Current chain updated'}
             else:
-                response = {'message': 'Blockchain is not valid. Current chain stay the same'}
+                response = {
+                    'message': 'Blockchain is not valid. Current chain stay the same'}
 
         return JsonResponse(response)

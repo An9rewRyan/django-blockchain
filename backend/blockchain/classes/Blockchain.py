@@ -11,7 +11,7 @@ from time import sleep
 class Blockchain:
 
     def __init__(self):
-        self.nodes = set(    #root nodes to check
+        self.nodes = set(  # root nodes to check
         )
         self.chain: list[Block] = []
         self.version = 1
@@ -25,7 +25,7 @@ class Blockchain:
                 previous_hash=self.get_last_block_hash(),
                 difficulty=self.difficulty,
                 version=self.version,
-                nonce = 1,
+                nonce=1,
                 time=datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
             )
             self.chain.append(block)
@@ -34,7 +34,7 @@ class Blockchain:
                 previous_hash=self.get_last_block_hash(),
                 difficulty=self.difficulty,
                 version=self.version,
-                nonce = 1,
+                nonce=1,
                 time=datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
             )
             self.chain.append(block)
@@ -121,7 +121,7 @@ class Blockchain:
             ))
         return block_chain
 
-    def replace_chain(self) -> bool:  # New
+    def replace_chain(self) -> bool:
         network = self.nodes
         longest_chain = None
         max_length = len(self.chain)
@@ -144,22 +144,22 @@ class Blockchain:
             self.chain = longest_chain
             return True
         return False
-    
-    def send_chain_to_nodes(self) -> list:
+
+    def send_chain_to_nodes(self) -> None:
         network = self.nodes
         new_chain = []
 
         for block in self.chain:
             new_chain.append(block.__dict__)
-        
+
         print(new_chain)
 
         for node in network:
             response = post(f'http://{node}/replace_chain', json={
-                "chain" : new_chain
+                "chain": new_chain
             })
             if response.status_code == 200:
                 message = response.json()["message"]
                 print(message)
-        
-        return []
+
+        return None
