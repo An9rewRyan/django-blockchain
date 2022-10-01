@@ -10,7 +10,11 @@ from time import sleep
 class Blockchain:
 
     def __init__(self):
-        self.nodes = set()
+        self.nodes = set(    #root nodes to check
+            "127:0.0.1:8001",
+            "127.0.0.1:8002",
+            "127.0.0.1:8003"
+        )
         self.chain: list[Block] = []
         self.version = 1
         self.difficulty = 2**238
@@ -116,6 +120,9 @@ class Blockchain:
             if response.status_code == 200:
                 length = response.json()["length"]
                 dict_chain = response.json()["chain"]
+                new_nodes = response.json()["nodes"]
+
+                self.nodes = set.union(self.nodes, new_nodes)
 
                 new_chain = self.dict_chain_to_block_chain(dict_chain)
 

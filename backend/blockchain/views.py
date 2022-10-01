@@ -53,7 +53,9 @@ def get_chain(request):
         chain.append(block.__dict__)
 
     response = {"chain": chain,
-                "length": len(blockchain.chain)}
+                "length": len(blockchain.chain),
+                "nodes": blockchain.nodes}
+                
     print(ast.literal_eval(json.dumps(response)))
 
     return JsonResponse(ast.literal_eval(json.dumps(response)))
